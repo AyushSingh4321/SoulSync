@@ -18,7 +18,8 @@ public interface UserRepo extends JpaRepository<UserModel,Integer>
     Optional<UserModel> findByUsername(String username);
     @Query("SELECT u FROM UserModel u WHERE u.email = :email")
     UserModel getUserDetailsByEmail(@Param("email") String email);
-
+    boolean existsByUsername(String username);
+    boolean existsByEmail(String email);
     @Query("SELECT u FROM UserModel u WHERE u.email <> :email")
     List<UserModel> findAllByEmailExcept(@Param("email") String email);
 
