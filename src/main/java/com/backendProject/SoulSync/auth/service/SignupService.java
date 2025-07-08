@@ -1,6 +1,7 @@
 package com.backendProject.SoulSync.auth.service;
 
 import com.backendProject.SoulSync.auth.dto.SignupRequestDto;
+import com.backendProject.SoulSync.exception.UserAlreadyExistsException;
 import com.backendProject.SoulSync.user.model.UserModel;
 import com.backendProject.SoulSync.user.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,11 +20,11 @@ public class SignupService
 
     public String registerUserAndReturnToken(SignupRequestDto dto) {
         if (repo.existsByUsername(dto.getUsername())) {
-            return "Username is already taken.";
+            throw new UserAlreadyExistsException("Username is already taken.");
         }
 
         if (repo.existsByEmail(dto.getEmail())) {
-            return "Email is already in use.";
+            throw new UserAlreadyExistsException("Email is already in use.");
         }
         try {
             UserModel user = new UserModel();
@@ -34,7 +35,7 @@ public class SignupService
             return jwtService.generateToken(user.getEmail());
 
         } catch (Exception e) {
-            return "Error generating token due to : " + e.getMessage();
+            throw new RuntimeException("Error generating token: " + e.getMessage());
         }
     }
 
