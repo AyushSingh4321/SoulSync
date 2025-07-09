@@ -27,15 +27,6 @@ public class UserController {
         return userService.updateUserProfile(userProfile);
     }
 
-    //    To get all other users
-    @GetMapping("/getAllOtherUsers")
-    public ResponseEntity<?> getAllOtherUsers() {
-        try {
-            return ResponseEntity.ok(userService.getAllOtherUsers());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error loading users");
-        }
-    }
 
     //    To like other users by current user
     @PostMapping("/like/{userId}")   //userId is the id of user to be liked
@@ -55,6 +46,15 @@ public class UserController {
 
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error getting all the liked users");
+        }
+    }
+//      To fetch all the users on the main screen in the order of their compatibility
+    @GetMapping("/discover")
+    public ResponseEntity<?> discoverUsers() {
+        try {
+            return ResponseEntity.ok(userService.getBestMatchedUsers());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error discovering/fetching all users according to compatibility");
         }
     }
 

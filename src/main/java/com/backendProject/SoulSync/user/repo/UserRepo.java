@@ -29,5 +29,9 @@ public interface UserRepo extends JpaRepository<UserModel, Integer> {
     @Query("SELECT u FROM UserModel u WHERE u.id <> :currentUserId")
     List<UserModel> findAllExceptCurrent(@Param("currentUserId") Integer currentUserId);
 
+    @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM UserModel u JOIN u.likedUsers l WHERE u.id = :otherUserId AND l.id = :currentUserId")
+    boolean hasLikedBack(@Param("otherUserId") Integer otherUserId, @Param("currentUserId") Integer currentUserId);
+
+
 
 }
