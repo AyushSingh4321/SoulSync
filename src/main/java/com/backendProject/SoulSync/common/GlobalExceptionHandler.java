@@ -26,6 +26,10 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> handleAllExceptions(Exception ex) {
+        return ResponseEntity.status(500).body("Server error: " + ex.getMessage());
+    }
 
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<String> handleNotFound(NoHandlerFoundException ex) {
