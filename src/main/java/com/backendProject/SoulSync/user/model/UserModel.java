@@ -31,6 +31,16 @@ public class UserModel {
     private String location;
     private String interests;
     private String profileImageUrl;
+//    other important fields for dating
+    private Double height;
+    private String sports;
+    private String games;
+    private String relationshipType; //casual or commitment
+    private Boolean goesGym;
+    private Boolean shortHair;
+    private Boolean wearGlasses;
+    private Boolean drink;
+    private Boolean smoke;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -54,6 +64,78 @@ public class UserModel {
 
     public void setLikedUsers(Set<UserModel> likedUsers) {
         this.likedUsers = likedUsers;
+    }
+
+    public Double getHeight() {
+        return height;
+    }
+
+    public void setHeight(Double height) {
+        this.height = height;
+    }
+
+    public String getSports() {
+        return sports;
+    }
+
+    public void setSports(String sports) {
+        this.sports = sports;
+    }
+
+    public String getGames() {
+        return games;
+    }
+
+    public void setGames(String games) {
+        this.games = games;
+    }
+
+    public String getRelationshipType() {
+        return relationshipType;
+    }
+
+    public void setRelationshipType(String relationshipType) {
+        this.relationshipType = relationshipType;
+    }
+
+    public Boolean getGoesGym() {
+        return goesGym;
+    }
+
+    public void setGoesGym(Boolean goesGym) {
+        this.goesGym = goesGym;
+    }
+
+    public Boolean getShortHair() {
+        return shortHair;
+    }
+
+    public void setShortHair(Boolean shortHair) {
+        this.shortHair = shortHair;
+    }
+
+    public Boolean getWearGlasses() {
+        return wearGlasses;
+    }
+
+    public void setWearGlasses(Boolean wearGlasses) {
+        this.wearGlasses = wearGlasses;
+    }
+
+    public Boolean getDrink() {
+        return drink;
+    }
+
+    public void setDrink(Boolean drink) {
+        this.drink = drink;
+    }
+
+    public Boolean getSmoke() {
+        return smoke;
+    }
+
+    public void setSmoke(Boolean smoke) {
+        this.smoke = smoke;
     }
 
     public LocalDateTime getUpdatedAt() {

@@ -2,8 +2,10 @@ package com.backendProject.SoulSync.user.controller;
 
 import com.backendProject.SoulSync.user.dto.UserDataDto;
 import com.backendProject.SoulSync.user.dto.UserProfileDto;
+import com.backendProject.SoulSync.user.model.UserModel;
 import com.backendProject.SoulSync.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -56,6 +58,15 @@ public class UserController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error discovering/fetching all users according to compatibility");
         }
+    }
+
+//    To add search functionality
+    @GetMapping("/search")
+    public ResponseEntity<?> searchUsers(@RequestParam String keyword)
+    {
+        System.out.println("searching with "+keyword);
+        List<UserDataDto> userList=userService.searchUsers(keyword);
+        return new ResponseEntity<>(userList, HttpStatus.OK);
     }
 
 

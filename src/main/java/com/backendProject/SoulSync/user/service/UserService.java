@@ -35,7 +35,27 @@ public class UserService {
     public ResponseEntity<?> getMyProfile() {
         try {
             UserModel user = (UserModel) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            return ResponseEntity.ok(user);
+            UserProfileDto dto = new UserProfileDto();
+            dto.setName(user.getName());
+            dto.setAge(user.getAge());
+            dto.setGender(user.getGender());
+            dto.setBio(user.getBio());
+            dto.setLocation(user.getLocation());
+            dto.setInterests(user.getInterests());
+            dto.setProfileImageUrl(user.getProfileImageUrl());
+            dto.setHeight(user.getHeight());
+            dto.setSports(user.getSports());
+            dto.setGames(user.getGames());
+            dto.setRelationshipType(user.getRelationshipType());
+            dto.setGoesGym(user.getGoesGym());
+            dto.setShortHair(user.getShortHair());
+            dto.setWearGlasses(user.getWearGlasses());
+            dto.setDrink(user.getDrink());
+            dto.setSmoke(user.getSmoke());
+
+            return ResponseEntity.ok(dto);
+
+//            return ResponseEntity.ok(user);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error fetching my profile data");
         }
@@ -51,6 +71,15 @@ public class UserService {
             user.setInterests(userProfile.getInterests());
             user.setLocation(userProfile.getLocation());
             user.setProfileImageUrl(userProfile.getProfileImageUrl());
+            user.setHeight(userProfile.getHeight());
+            user.setGames(userProfile.getGames());
+            user.setSports(userProfile.getSports());
+            user.setRelationshipType(userProfile.getRelationshipType());
+            user.setGoesGym(userProfile.getGoesGym());
+            user.setShortHair(userProfile.getShortHair());
+            user.setWearGlasses(userProfile.getWearGlasses());
+            user.setDrink(userProfile.getDrink());
+            user.setSmoke(userProfile.getSmoke());
             repo.save(user);
             return ResponseEntity.ok().body("User profile updated");
         } catch (Exception e) {
@@ -101,8 +130,17 @@ public class UserService {
                         user.getLocation(),
                         user.getInterests(),
                         user.getProfileImageUrl(),
-                        true // because these are all liked users
-                ))
+                        true,// because these are all liked users
+                        user.getHeight(),
+                        user.getSports(),
+                        user.getGames(),
+                        user.getRelationshipType(),
+                        user.getGoesGym(),
+                        user.getShortHair(),
+                        user.getWearGlasses(),
+                        user.getDrink(),
+                        user.getSmoke()
+                        ))
                 .collect(Collectors.toList());
     }
 
@@ -113,12 +151,42 @@ public class UserService {
 
         String currentGender = currentUser.getGender();
         String targetGender = getTargetGender(currentGender);
+        Set<UserModel> myLikes = currentUser.getLikedUsers();
+
+        // If gender is missing, show all users without matching logic
+        if (currentGender == null || getTargetGender(currentGender) == null) {
+            List<UserModel> allOthers = repo.findAllExceptCurrent(currentUserId);
+
+            return allOthers.stream()
+                    .map(other -> new UserDataDto(
+                            other.getId(),
+                            other.getName(),
+                            other.getAge(),
+                            other.getGender(),
+                            other.getBio(),
+                            other.getLocation(),
+                            other.getInterests(),
+                            other.getProfileImageUrl(),
+                            myLikes.contains(other),
+                            other.getHeight(),
+                            other.getSports(),
+                            other.getGames(),
+                            other.getRelationshipType(),
+                            other.getGoesGym(),
+                            other.getShortHair(),
+                            other.getWearGlasses(),
+                            other.getDrink(),
+                            other.getSmoke()
+                    ))
+                    .collect(Collectors.toList());
+        }
+
+        // Normal matching logic if gender is available
 
         List<UserModel> others = repo.findAllExceptCurrent(currentUserId).stream()
                 .filter(user -> user.getGender() != null && user.getGender().equalsIgnoreCase(targetGender))
                 .toList();
 
-        Set<UserModel> myLikes = currentUser.getLikedUsers();
 
         return others.stream()
                 .map(other -> {
@@ -135,7 +203,16 @@ public class UserService {
                                     other.getLocation(),
                                     other.getInterests(),
                                     other.getProfileImageUrl(),
-                                    liked
+                                    liked,
+                                    other.getHeight(),
+                                    other.getSports(),
+                                    other.getGames(),
+                                    other.getRelationshipType(),
+                                    other.getGoesGym(),
+                                    other.getShortHair(),
+                                    other.getWearGlasses(),
+                                    other.getDrink(),
+                                    other.getSmoke()
                             ),
                             score
                     );
@@ -145,26 +222,26 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-
+//Helper functions and classes below
     private int calculateMatchScore(UserModel currentUser, UserModel other) {
         try {
             System.out.println("Matching: " + currentUser.getId() + " with " + other.getId());
 
             int score = 0;
 
-            // Age similarity
+            // Age similarity (Max 10 points)
             if (currentUser.getAge() != null && other.getAge() != null) {
                 int ageDiff = Math.abs(currentUser.getAge() - other.getAge());
                 score += Math.max(0, 10 - ageDiff);
             }
 
-            // Location
+            // Location match (10 points)
             if (currentUser.getLocation() != null &&
                     currentUser.getLocation().equalsIgnoreCase(other.getLocation())) {
                 score += 10;
             }
 
-            // Interests
+            // Interests overlap (5 points per shared interest)
             if (currentUser.getInterests() != null && other.getInterests() != null) {
                 Set<String> interests1 = Arrays.stream(currentUser.getInterests().split(","))
                         .map(String::trim)
@@ -180,12 +257,61 @@ public class UserService {
                 score += interests1.size() * 5;
             }
 
-            // Mutual Like check
+            // Sports match (5 points)
+            if (currentUser.getSports() != null && currentUser.getSports().equalsIgnoreCase(other.getSports())) {
+                score += 5;
+            }
+
+            // Games match (5 points)
+            if (currentUser.getGames() != null && currentUser.getGames().equalsIgnoreCase(other.getGames())) {
+                score += 5;
+            }
+
+            // Relationship preference match (10 points)
+            if (currentUser.getRelationshipType() != null &&
+                    currentUser.getRelationshipType().equalsIgnoreCase(other.getRelationshipType())) {
+                score += 10;
+            }
+
+            // Lifestyle/Physical features matches (3 points each)
+            if (currentUser.getGoesGym() != null && other.getGoesGym() != null &&
+                    currentUser.getGoesGym().equals(other.getGoesGym())) {
+                score += 3;
+            }
+
+            if (currentUser.getShortHair() != null && other.getShortHair() != null &&
+                    currentUser.getShortHair().equals(other.getShortHair())) {
+                score += 3;
+            }
+
+            if (currentUser.getWearGlasses() != null && other.getWearGlasses() != null &&
+                    currentUser.getWearGlasses().equals(other.getWearGlasses())) {
+                score += 3;
+            }
+
+            if (currentUser.getDrink() != null && other.getDrink() != null &&
+                    currentUser.getDrink().equals(other.getDrink())) {
+                score += 3;
+            }
+
+            if (currentUser.getSmoke() != null && other.getSmoke() != null &&
+                    currentUser.getSmoke().equals(other.getSmoke())) {
+                score += 3;
+            }
+
+            // Height similarity (max 5 points if difference <= 10 cm)
+            if (currentUser.getHeight() != null && other.getHeight() != null) {
+                double heightDiff = Math.abs(currentUser.getHeight() - other.getHeight());
+                if (heightDiff <= 10) score += 5;
+            }
+
+            // Mutual like (15 points)
             if (repo.hasLikedBack(other.getId(), currentUser.getId())) {
                 score += 15;
             }
 
             return score;
+
         } catch (Exception e) {
             System.out.println("ERROR in calculateMatchScore: " + e.getMessage());
             e.printStackTrace();
@@ -202,6 +328,14 @@ public class UserService {
             default -> null; // Add more cases if you support other genders
         };
     }
+
+    public List<UserDataDto> searchUsers(String keyword) {
+        keyword=keyword.trim();
+        String searchPattern = "%" + keyword.toLowerCase() + "%";
+        System.out.println("Final search pattern = " + searchPattern);
+        return repo.searchUsers(searchPattern);
+    }
+
 
 
     private static class ScoredUser {
