@@ -42,6 +42,25 @@ public interface UserRepo extends JpaRepository<UserModel, Integer> {
             "OR LOWER(u.relationshipType) LIKE :keyword")
     List<UserDataDto> searchUsers(@Param("keyword") String keyword);
 
+    @Query("""
+    SELECT new com.backendProject.SoulSync.user.dto.UserDataDto(
+        u.id, u.name, u.age, u.gender, u.bio,
+        u.location, u.interests, u.profileImageUrl,
+        FALSE,
+        u.height, u.sports, u.games, u.relationshipType,
+        u.goesGym, u.shortHair, u.wearGlasses, u.drink, u.smoke
+    )
+    FROM UserModel u
+    WHERE (
+        LOWER(u.name) LIKE :keyword OR
+        LOWER(u.bio) LIKE :keyword OR
+        LOWER(u.location) LIKE :keyword OR
+        LOWER(u.interests) LIKE :keyword OR
+        LOWER(u.relationshipType) LIKE :keyword
+    )
+    AND (:gender IS NULL OR LOWER(u.gender) = LOWER(:gender))
+""")
+    List<UserDataDto> searchUsers(@Param("keyword") String keyword, @Param("gender") String gender);
 
 
 

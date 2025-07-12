@@ -20,10 +20,11 @@ public class UserDataDto
     private Boolean wearGlasses;
     private Boolean drink;
     private Boolean smoke;
+    private Integer score;
     public UserDataDto() {
     }
 
-    public UserDataDto(Integer id, String name, Integer age, String gender, String bio, String location, String interests, String profileImageUrl, boolean isLikedByMe, Double height, String sports, String games, String relationshipType, Boolean goesGym, Boolean shortHair, Boolean wearGlasses, Boolean drink, Boolean smoke) {
+    public UserDataDto(Integer id, String name, Integer age, String gender, String bio, String location, String interests, String profileImageUrl, boolean isLikedByMe, Double height, String sports, String games, String relationshipType, Boolean goesGym, Boolean shortHair, Boolean wearGlasses, Boolean drink, Boolean smoke,Integer score) {
         this.id = id;
         this.name = name;
         this.age = age;
@@ -42,7 +43,29 @@ public class UserDataDto
         this.wearGlasses = wearGlasses;
         this.drink = drink;
         this.smoke = smoke;
+        this.score=score;
     }
+//old constructor for search
+//    public UserDataDto(Integer id, String name, Integer age, String gender, String bio, String location, String interests, String profileImageUrl, boolean isLikedByMe, Double height, String sports, String games, String relationshipType, Boolean goesGym, Boolean shortHair, Boolean wearGlasses, Boolean drink, Boolean smoke) {
+//        this.id = id;
+//        this.name = name;
+//        this.age = age;
+//        this.gender = gender;
+//        this.bio = bio;
+//        this.location = location;
+//        this.interests = interests;
+//        this.profileImageUrl = profileImageUrl;
+//        this.isLikedByMe = isLikedByMe;
+//        this.height = height;
+//        this.sports = sports;
+//        this.games = games;
+//        this.relationshipType = relationshipType;
+//        this.goesGym = goesGym;
+//        this.shortHair = shortHair;
+//        this.wearGlasses = wearGlasses;
+//        this.drink = drink;
+//        this.smoke = smoke;
+//    }
 
     // Constructor for JPQL projection with Boolean instead of boolean
     public UserDataDto(Integer id, String name, Integer age, String gender, String bio, String location,
@@ -67,6 +90,14 @@ public class UserDataDto
         this.wearGlasses = wearGlasses;
         this.drink = drink;
         this.smoke = smoke;
+    }
+
+    public Integer getScore() {
+        return score;
+    }
+
+    public void setScore(Integer score) {
+        this.score = score;
     }
 
     public Double getHeight() {

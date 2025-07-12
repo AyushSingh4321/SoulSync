@@ -13,10 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -144,84 +141,77 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
+    public List<UserDataDto> searchUsers(String keyword) {
+        keyword=keyword.trim();
+        String searchPattern = "%" + keyword.toLowerCase() + "%";
+        String targetGender = null;
+        try {
+            UserModel currentUser = getCurrentManagedUser(); // already exists
+            targetGender = getTargetGender(currentUser.getGender()); // already exists
+        } catch (Exception ignored) {
+            // If not logged in or something fails, fallback to original behavior
+        }
+        System.out.println("Final search pattern = " + searchPattern);
+        return repo.searchUsers(searchPattern,targetGender);
+    }
+
+
     @Transactional
     public List<UserDataDto> getBestMatchedUsers() {
-        UserModel currentUser = getCurrentManagedUser();
-        Integer currentUserId = currentUser.getId();
-
-        String currentGender = currentUser.getGender();
-        String targetGender = getTargetGender(currentGender);
+        UserModel currentUser  = getCurrentManagedUser();
+        Integer    currentId   = currentUser.getId();
+        String     myGender    = currentUser.getGender();
+        String     targetGender = getTargetGender(myGender);
         Set<UserModel> myLikes = currentUser.getLikedUsers();
 
-        // If gender is missing, show all users without matching logic
-        if (currentGender == null || getTargetGender(currentGender) == null) {
-            List<UserModel> allOthers = repo.findAllExceptCurrent(currentUserId);
-
-            return allOthers.stream()
-                    .map(other -> new UserDataDto(
-                            other.getId(),
-                            other.getName(),
-                            other.getAge(),
-                            other.getGender(),
-                            other.getBio(),
-                            other.getLocation(),
-                            other.getInterests(),
-                            other.getProfileImageUrl(),
-                            myLikes.contains(other),
-                            other.getHeight(),
-                            other.getSports(),
-                            other.getGames(),
-                            other.getRelationshipType(),
-                            other.getGoesGym(),
-                            other.getShortHair(),
-                            other.getWearGlasses(),
-                            other.getDrink(),
-                            other.getSmoke()
+        // -----------------------------------------------------------------
+        // 1) No gender?  fall back to "everyone except me" (score = 0)
+        // -----------------------------------------------------------------
+        if (myGender == null || targetGender == null) {
+            return repo.findAllExceptCurrent(currentId)
+                    .stream()
+                    .map(u -> new UserDataDto(
+                            u.getId(), u.getName(), u.getAge(), u.getGender(), u.getBio(),
+                            u.getLocation(), u.getInterests(), u.getProfileImageUrl(),
+                            myLikes.contains(u),
+                            u.getHeight(), u.getSports(), u.getGames(), u.getRelationshipType(),
+                            u.getGoesGym(), u.getShortHair(), u.getWearGlasses(),
+                            u.getDrink(), u.getSmoke(),
+                            0                 // no score calculated
                     ))
                     .collect(Collectors.toList());
         }
 
-        // Normal matching logic if gender is available
-
-        List<UserModel> others = repo.findAllExceptCurrent(currentUserId).stream()
-                .filter(user -> user.getGender() != null && user.getGender().equalsIgnoreCase(targetGender))
+        // -----------------------------------------------------------------
+        // 2) Normal match flow
+        // -----------------------------------------------------------------
+        List<UserModel> candidates = repo.findAllExceptCurrent(currentId)
+                .stream()
+                .filter(u -> Objects.equals(
+                        Optional.ofNullable(u.getGender())
+                                .map(String::toLowerCase)
+                                .orElse(null),
+                        targetGender.toLowerCase()))
                 .toList();
 
+        return candidates.stream()
+                .map(u -> {
+                    int score  = calculateMatchScore(currentUser, u);
+                    boolean liked = myLikes.contains(u);
 
-        return others.stream()
-                .map(other -> {
-                    int score = calculateMatchScore(currentUser, other);
-                    boolean liked = myLikes.contains(other);
-
-                    return new ScoredUser(
-                            new UserDataDto(
-                                    other.getId(),
-                                    other.getName(),
-                                    other.getAge(),
-                                    other.getGender(),
-                                    other.getBio(),
-                                    other.getLocation(),
-                                    other.getInterests(),
-                                    other.getProfileImageUrl(),
-                                    liked,
-                                    other.getHeight(),
-                                    other.getSports(),
-                                    other.getGames(),
-                                    other.getRelationshipType(),
-                                    other.getGoesGym(),
-                                    other.getShortHair(),
-                                    other.getWearGlasses(),
-                                    other.getDrink(),
-                                    other.getSmoke()
-                            ),
-                            score
+                    return new UserDataDto(
+                            u.getId(), u.getName(), u.getAge(), u.getGender(), u.getBio(),
+                            u.getLocation(), u.getInterests(), u.getProfileImageUrl(),
+                            liked,
+                            u.getHeight(), u.getSports(), u.getGames(), u.getRelationshipType(),
+                            u.getGoesGym(), u.getShortHair(), u.getWearGlasses(),
+                            u.getDrink(), u.getSmoke(),
+                            score                                // NEW
                     );
                 })
-                .sorted((a, b) -> Integer.compare(b.score, a.score)) // Descending
-                .map(s -> s.user)
+                .sorted(Comparator.comparingInt(UserDataDto::getScore).reversed())
                 .collect(Collectors.toList());
     }
-
 //Helper functions and classes below
     private int calculateMatchScore(UserModel currentUser, UserModel other) {
         try {
@@ -329,22 +319,17 @@ public class UserService {
         };
     }
 
-    public List<UserDataDto> searchUsers(String keyword) {
-        keyword=keyword.trim();
-        String searchPattern = "%" + keyword.toLowerCase() + "%";
-        System.out.println("Final search pattern = " + searchPattern);
-        return repo.searchUsers(searchPattern);
-    }
 
 
 
-    private static class ScoredUser {
-        UserDataDto user;
-        int score;
 
-        public ScoredUser(UserDataDto user, int score) {
-            this.user = user;
-            this.score = score;
-        }
-    }
+//    private static class ScoredUser {
+//        UserDataDto user;
+//        int score;
+//
+//        public ScoredUser(UserDataDto user, int score) {
+//            this.user = user;
+//            this.score = score;
+//        }
+//    }
 }
