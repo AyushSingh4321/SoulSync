@@ -1,4 +1,4 @@
-package com.backendProject.SoulSync.date;
+package com.backendProject.SoulSync.date.model;
 
 import com.backendProject.SoulSync.enums.DateRequestStatus;
 import com.backendProject.SoulSync.user.model.UserModel;

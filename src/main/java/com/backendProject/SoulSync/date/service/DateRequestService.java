@@ -1,10 +1,12 @@
-package com.backendProject.SoulSync.date;
+package com.backendProject.SoulSync.date.service;
 
+import com.backendProject.SoulSync.date.repo.DateRequestRepo;
+import com.backendProject.SoulSync.date.dto.DateRequestDto;
+import com.backendProject.SoulSync.date.model.DateRequestModel;
 import com.backendProject.SoulSync.enums.DateRequestStatus;
 import com.backendProject.SoulSync.user.model.UserModel;
 import com.backendProject.SoulSync.user.repo.UserRepo;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -78,10 +80,6 @@ public class DateRequestService {
             throw new RuntimeException("Cannot edit a finalized request");
         }
 
-//        if (!request.getSender().getEmail().equals(email) &&
-//                !request.getReceiver().getEmail().equals(email)) {
-//            throw new RuntimeException("You are not a participant in this request");
-//        }
         if (!isParticipant(request,email)) {
             throw new RuntimeException("You are not a participant in this request");
         }

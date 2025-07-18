@@ -1,5 +1,7 @@
-package com.backendProject.SoulSync.date;
+package com.backendProject.SoulSync.date.controller;
 
+import com.backendProject.SoulSync.date.dto.DateRequestDto;
+import com.backendProject.SoulSync.date.service.DateRequestService;
 import com.backendProject.SoulSync.user.model.UserModel;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +10,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController

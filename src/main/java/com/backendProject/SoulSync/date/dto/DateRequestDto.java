@@ -1,4 +1,4 @@
-package com.backendProject.SoulSync.date;
+package com.backendProject.SoulSync.date.dto;
 
 
 import jakarta.validation.constraints.NotBlank;
