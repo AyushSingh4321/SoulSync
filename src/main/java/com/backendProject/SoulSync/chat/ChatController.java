@@ -15,7 +15,6 @@ import java.util.List;
 
 @Controller
 public class ChatController {
-//just checking if everything working after git changes
     @Autowired
     SimpMessagingTemplate messagingTemplate;
     @Autowired
