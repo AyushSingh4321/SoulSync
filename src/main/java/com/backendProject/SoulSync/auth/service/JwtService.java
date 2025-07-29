@@ -20,7 +20,7 @@ public class JwtService {
     private String secretKey = dotenv.get("JWT_SECRET");
 
     public String generateToken(String email) {
-        System.out.println("********************************"+secretKey);
+//        System.out.println("********************************"+secretKey);
         Map<String, Object> claims = new HashMap<>();
         return Jwts.builder()
                 .claims()

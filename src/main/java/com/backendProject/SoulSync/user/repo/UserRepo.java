@@ -1,5 +1,6 @@
 package com.backendProject.SoulSync.user.repo;
 
+import com.backendProject.SoulSync.enums.UserStatus;
 import com.backendProject.SoulSync.user.dto.UserDataDto;
 import com.backendProject.SoulSync.user.model.UserModel;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -63,5 +64,5 @@ public interface UserRepo extends JpaRepository<UserModel, Integer> {
     List<UserDataDto> searchUsers(@Param("keyword") String keyword, @Param("gender") String gender);
 
 
-
+    List<UserModel> findAllByStatus(UserStatus userStatus);
 }

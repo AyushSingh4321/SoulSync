@@ -7,6 +7,10 @@ import com.backendProject.SoulSync.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,6 +21,30 @@ public class UserController {
     @Autowired
     UserService userService;
 
+////    =================Controllers for User Chat data================
+//    @MessageMapping("/user.addUser")
+//    @SendTo("/user/topic")
+//    public UserModel addUser(@Payload UserModel user)
+//    {
+//        userService.saveUser(user);
+//        return user;
+//    }
+//
+//    @MessageMapping("/user.disconnectUser")
+//    @SendTo("/user/topic")
+//    public UserModel disconnect(@Payload UserModel user)
+//    {
+//        userService.disconnect(user);
+//        return user;
+//    }
+//
+    @GetMapping("/users")
+    public ResponseEntity<List<UserModel>> findConnectedUsers()
+    {
+        return ResponseEntity.ok(userService.findConnectedUsers());
+    }
+
+//    ================Controllers for other user operations==========
     //    To get the current logged-in user profile
     @GetMapping("/myProfile")
     public ResponseEntity<?> getMyProfile() {

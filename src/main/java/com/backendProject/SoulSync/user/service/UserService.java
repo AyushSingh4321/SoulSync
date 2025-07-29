@@ -2,12 +2,15 @@ package com.backendProject.SoulSync.user.service;
 
 import com.backendProject.SoulSync.auth.dto.SignupRequestDto;
 import com.backendProject.SoulSync.auth.service.JwtService;
+import com.backendProject.SoulSync.enums.UserStatus;
+import com.backendProject.SoulSync.user.dto.ChatUserDto;
 import com.backendProject.SoulSync.user.dto.UserDataDto;
 import com.backendProject.SoulSync.user.dto.UserProfileDto;
 import com.backendProject.SoulSync.user.model.UserModel;
 import com.backendProject.SoulSync.user.repo.UserRepo;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,6 +25,50 @@ public class UserService {
     @Autowired
     UserRepo repo;
 
+    //==================USER CHAT APIs=========================
+//    helper
+    private ChatUserDto toChatUserDto(UserModel user) {
+        ChatUserDto dto = new ChatUserDto();
+        dto.setId(String.valueOf(user.getId())); // Or username if preferred
+        dto.setName(user.getName());
+        dto.setStatus(user.getStatus());
+        return dto;
+    }
+
+    public String saveStatus(Integer id) {
+        try {
+            UserModel user = repo.findById(id).orElseThrow();
+            user.setStatus(UserStatus.ONLINE);
+            repo.save(user);
+            return "User status changed to Online";
+        } catch (Exception e) {
+            String errorMessage = "User not found: " + e.getMessage();
+            return errorMessage;
+        }
+    }
+
+    public String disconnect(Integer id) {
+        try {
+            var storedUser = repo.findById(id)
+                    .orElse(null);
+            if (storedUser != null) {
+                storedUser.setStatus(UserStatus.OFFLINE);
+                repo.save(storedUser);
+
+            }
+            return storedUser + " disconnected";
+        } catch (Exception e) {
+            String errorMessage = "User not found: " + e.getMessage();
+            return errorMessage;
+        }
+
+    }
+
+    public List<UserModel> findConnectedUsers() {
+        return repo.findAllByStatus(UserStatus.ONLINE);
+    }
+
+    //==================USER NORMAL APIs========================
     //Used in this class only
     private UserModel getCurrentManagedUser() {
         UserModel authUser = (UserModel) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -137,12 +184,12 @@ public class UserService {
                         user.getWearGlasses(),
                         user.getDrink(),
                         user.getSmoke()
-                        ))
+                ))
                 .collect(Collectors.toList());
     }
 
     public List<UserDataDto> searchUsers(String keyword) {
-        keyword=keyword.trim();
+        keyword = keyword.trim();
         String searchPattern = "%" + keyword.toLowerCase() + "%";
         String targetGender = null;
         try {
@@ -152,16 +199,16 @@ public class UserService {
             // If not logged in or something fails, fallback to original behavior
         }
         System.out.println("Final search pattern = " + searchPattern);
-        return repo.searchUsers(searchPattern,targetGender);
+        return repo.searchUsers(searchPattern, targetGender);
     }
 
 
     @Transactional
     public List<UserDataDto> getBestMatchedUsers() {
-        UserModel currentUser  = getCurrentManagedUser();
-        Integer    currentId   = currentUser.getId();
-        String     myGender    = currentUser.getGender();
-        String     targetGender = getTargetGender(myGender);
+        UserModel currentUser = getCurrentManagedUser();
+        Integer currentId = currentUser.getId();
+        String myGender = currentUser.getGender();
+        String targetGender = getTargetGender(myGender);
         Set<UserModel> myLikes = currentUser.getLikedUsers();
 
         // -----------------------------------------------------------------
@@ -196,7 +243,7 @@ public class UserService {
 
         return candidates.stream()
                 .map(u -> {
-                    int score  = calculateMatchScore(currentUser, u);
+                    int score = calculateMatchScore(currentUser, u);
                     boolean liked = myLikes.contains(u);
 
                     return new UserDataDto(
@@ -212,7 +259,8 @@ public class UserService {
                 .sorted(Comparator.comparingInt(UserDataDto::getScore).reversed())
                 .collect(Collectors.toList());
     }
-//Helper functions and classes below
+
+    //Helper functions and classes below
     private int calculateMatchScore(UserModel currentUser, UserModel other) {
         try {
             System.out.println("Matching: " + currentUser.getId() + " with " + other.getId());
@@ -318,9 +366,6 @@ public class UserService {
             default -> null; // Add more cases if you support other genders
         };
     }
-
-
-
 
 
 //    private static class ScoredUser {

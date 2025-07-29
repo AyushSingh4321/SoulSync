@@ -1,5 +1,6 @@
 package com.backendProject.SoulSync.user.model;
 
+import com.backendProject.SoulSync.enums.UserStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -49,6 +50,10 @@ public class UserModel {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserStatus status = UserStatus.OFFLINE;
+
     @ManyToMany
     @JoinTable(
             name = "user_likes",
@@ -57,6 +62,14 @@ public class UserModel {
     )
     @JsonIgnore
     private Set<UserModel> likedUsers = new HashSet<>();
+
+    public UserStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(UserStatus status) {
+        this.status = status;
+    }
 
     public Set<UserModel> getLikedUsers() {
         return likedUsers;
