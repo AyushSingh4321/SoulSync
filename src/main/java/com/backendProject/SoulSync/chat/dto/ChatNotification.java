@@ -1,4 +1,4 @@
-package com.backendProject.SoulSync.chat;
+package com.backendProject.SoulSync.chat.dto;
 
 
 public class ChatNotification {

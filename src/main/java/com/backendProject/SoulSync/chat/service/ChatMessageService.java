@@ -1,5 +1,7 @@
-package com.backendProject.SoulSync.chat;
+package com.backendProject.SoulSync.chat.service;
 
+import com.backendProject.SoulSync.chat.model.ChatMessage;
+import com.backendProject.SoulSync.chat.repo.ChatMessageRepository;
 import com.backendProject.SoulSync.chatroom.service.ChatRoomService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

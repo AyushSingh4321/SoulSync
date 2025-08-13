@@ -25,9 +25,11 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .authorizeHttpRequests(request -> request.requestMatchers("/api/auth/**").permitAll().anyRequest().authenticated())
+                .authorizeHttpRequests(request -> request.requestMatchers("/api/auth/**","/chat-client.html", "/static/**","/ws/**").permitAll().anyRequest().authenticated())
 //                .authorizeHttpRequests(request -> request.anyRequest().permitAll())
-                .httpBasic(Customizer.withDefaults())
+//                .httpBasic(Customizer.withDefaults())
+                .formLogin(form -> form.disable())
+                .httpBasic(basic -> basic.disable())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

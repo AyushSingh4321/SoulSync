@@ -39,13 +39,38 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
                 UserModel user = optionalUser.get();
                 System.out.println("Interceptor 3 "+user.getEmail());
                 // Save Principal in attributes so it can be set later
-                attributes.put("user", new StompPrincipal(user.getEmail())); // this is the key part
+                attributes.put("user", new StompPrincipal(String.valueOf(user.getId()))); // this is the key part
 //                attributes.put("user", new StompPrincipal(user));
             }
         }
 
         return true;
     }
+
+//    USED ONLY IN BROWSERS
+// src/main/java/com/backendProject/SoulSync/config/JwtHandshakeInterceptor.java
+//@Override
+//public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
+//                               WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
+//    String token = null;
+//    if (request instanceof org.springframework.http.server.ServletServerHttpRequest) {
+//        String query = ((org.springframework.http.server.ServletServerHttpRequest) request)
+//                .getServletRequest().getQueryString();
+//        if (query != null && query.contains("token=")) {
+//            token = query.split("token=")[1];
+//        }
+//    }
+//    System.out.println("Interceptor 1  " + token);
+//    if (token != null) {
+//        String email = jwtService.extractEmail(token);
+//        Optional<UserModel> optionalUser = userRepo.findByEmail(email);
+//        if (optionalUser.isPresent()) {
+//            UserModel user = optionalUser.get();
+//            attributes.put("user", new StompPrincipal(String.valueOf(user.getId())));
+//        }
+//    }
+//    return true;
+//}
 
     @Override
     public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response,
@@ -67,22 +92,5 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
             return name;
         }
     }
-//    ====================AFTER
-//public static class StompPrincipal implements Principal {
-//    private final UserModel user;
-//
-//    public StompPrincipal(UserModel user) {
-//        this.user = user;
-//    }
-//
-//    @Override
-//    public String getName() {
-//        return user.getEmail(); // must return email for Spring routing
-//    }
-//
-//    public UserModel getUser() {
-//        return user;
-//    }
-//}
 
 }

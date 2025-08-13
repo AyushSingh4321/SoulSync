@@ -1,5 +1,8 @@
-package com.backendProject.SoulSync.chat;
+package com.backendProject.SoulSync.chat.controller;
 
+import com.backendProject.SoulSync.chat.model.ChatMessage;
+import com.backendProject.SoulSync.chat.service.ChatMessageService;
+import com.backendProject.SoulSync.chat.dto.ChatNotification;
 import com.backendProject.SoulSync.user.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -30,9 +33,9 @@ public class ChatController {
 //        john/queue/messages
 
         messagingTemplate.convertAndSendToUser(
-//                savedMsg.getRecipientId(),
-                "ayushksb12@gmail.com",//just for testing
-                "/queue/messages",ChatNotification.builder()
+                String.valueOf(savedMsg.getRecipientId()),
+//                "ayushksb12@gmail.com",//just for testing
+                "/queue/messages", ChatNotification.builder()
                                 .id(savedMsg.getId())
                                 .senderId(savedMsg.getSenderId())
                                 .recipientId(savedMsg.getRecipientId())

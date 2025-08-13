@@ -1,4 +1,4 @@
-package com.backendProject.SoulSync.chat;
+package com.backendProject.SoulSync.chat.model;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;

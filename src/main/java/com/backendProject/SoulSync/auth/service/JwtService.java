@@ -18,7 +18,7 @@ import java.util.function.Function;
 public class JwtService {
     Dotenv dotenv = Dotenv.load();
     private String secretKey = dotenv.get("JWT_SECRET");
-
+    private static final long JWT_EXPIRATION_MS = 1000L * 60 * 60 * 24 * 30;
     public String generateToken(String email) {
 //        System.out.println("********************************"+secretKey);
         Map<String, Object> claims = new HashMap<>();
@@ -27,7 +27,7 @@ public class JwtService {
                 .add(claims)
                 .subject(email)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 30))
+                .expiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION_MS))
                 .and()
                 .signWith(getKey())
                 .compact();
