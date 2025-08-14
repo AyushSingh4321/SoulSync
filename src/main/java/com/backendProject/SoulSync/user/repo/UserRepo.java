@@ -3,11 +3,14 @@ package com.backendProject.SoulSync.user.repo;
 import com.backendProject.SoulSync.enums.UserStatus;
 import com.backendProject.SoulSync.user.dto.UserDataDto;
 import com.backendProject.SoulSync.user.model.UserModel;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -65,4 +68,9 @@ public interface UserRepo extends JpaRepository<UserModel, Integer> {
 
 
     List<UserModel> findAllByStatus(UserStatus userStatus);
+
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM UserModel u WHERE u.deactivationReason = 1 AND u.deactivatedAt < :cutoffDate")
+    int deleteOldDeactivatedUsers(@Param("cutoffDate") LocalDateTime cutoffDate);
 }

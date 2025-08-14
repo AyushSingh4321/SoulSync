@@ -37,6 +37,24 @@ public class LoginService {
         }
 
         String token = jwtService.generateToken(user.getEmail()); // or user.getUsername()
+
+        // To enable the user if they deleted their account
+        if(!user.getActive() && user.getDeactivationReason() ==1) {
+            user.setActive(true);
+            user.setDeactivationReason(null);
+            user.setDeactivatedAt(null);
+            userRepo.save(user);
         return ResponseEntity.ok(token);
+        }
+        else if(!user.getActive() && user.getDeactivationReason() ==2) {
+            return ResponseEntity.badRequest().body("Your account is banned due to reports");
+        }
+        else if(!user.getActive() && user.getDeactivationReason() ==3) {
+            return ResponseEntity.badRequest().body("Your account is deactivated for some reason, please contact support");
+        }
+        else {
+            return ResponseEntity.ok(token);
+        }
+
     }
 }

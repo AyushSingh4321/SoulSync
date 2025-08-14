@@ -22,7 +22,6 @@ public class UserModel {
 
     @Column(nullable = false)
     private String password;
-    private Boolean isActive = true;
 
     // Profile fields
     private Integer age;
@@ -32,7 +31,7 @@ public class UserModel {
     private String location;
     private String interests;
     private String profileImageUrl;
-//    other important fields for dating
+    //    other important fields for dating
     private Double height;
     private String sports;
     private String games;
@@ -42,6 +41,16 @@ public class UserModel {
     private Boolean wearGlasses;
     private Boolean drink;
     private Boolean smoke;
+    //deactivation fields
+    private Boolean isActive = true;
+    // Reason codes 1 = User requested delete, 2 = Banned after reports, 3 = Misc
+    @Column(nullable = true)
+    private Integer deactivationReason; // null means active
+
+    private LocalDateTime deactivatedAt;
+
+    @Column(nullable = false)
+    private Integer reportCount = 0;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -264,4 +273,27 @@ public class UserModel {
         this.password = password;
     }
 
+    public Integer getDeactivationReason() {
+        return deactivationReason;
+    }
+
+    public void setDeactivationReason(Integer deactivationReason) {
+        this.deactivationReason = deactivationReason;
+    }
+
+    public LocalDateTime getDeactivatedAt() {
+        return deactivatedAt;
+    }
+
+    public void setDeactivatedAt(LocalDateTime deactivatedAt) {
+        this.deactivatedAt = deactivatedAt;
+    }
+
+    public Integer getReportCount() {
+        return reportCount;
+    }
+
+    public void setReportCount(Integer reportCount) {
+        this.reportCount = reportCount;
+    }
 }

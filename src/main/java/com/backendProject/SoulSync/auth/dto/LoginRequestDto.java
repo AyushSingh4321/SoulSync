@@ -1,7 +1,9 @@
 package com.backendProject.SoulSync.auth.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotBlank;
 
+@JsonIgnoreProperties(ignoreUnknown = false)
 public class LoginRequestDto
 {
     @NotBlank(message = "Identifier is required (email or username)")

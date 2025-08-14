@@ -16,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -428,6 +429,57 @@ public class UserService {
         };
     }
 
+    public ResponseEntity<?> disableUser(int reason) {
+        try {
+            UserModel user = getCurrentManagedUser();
+            user.setActive(false);
+            user.setDeactivationReason(reason);
+            user.setDeactivatedAt(LocalDateTime.now());
+            repo.save(user);
+            return ResponseEntity.ok("User disabled successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error disabling user");
+        }
+    }
+
+    @Transactional
+    public ResponseEntity<?> reportUser(Integer userId) {
+        try {
+            UserModel currentUser = getCurrentManagedUser();
+            UserModel userToReport = repo.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User to report not found"));
+
+            if (currentUser.getId().equals(userToReport.getId())) {
+                return ResponseEntity.badRequest().body("You cannot report yourself");
+            }
+            // Increment report count
+            int newReportCount = userToReport.getReportCount() + 1;
+            userToReport.setReportCount(newReportCount);
+
+            // Check if the user should be deactivated
+            if (newReportCount > 20) {
+                userToReport.setActive(false);
+                userToReport.setDeactivationReason(2); // 2 = reported too many times
+                userToReport.setDeactivatedAt(LocalDateTime.now());
+            }
+
+            // Save the updated user
+            repo.save(userToReport);
+            if( userToReport.getReportCount() >20) {
+                return ResponseEntity.ok("User reported and deactivated due to excessive reports");
+            }
+            return ResponseEntity.ok("User reported successfully ");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error reporting user: " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    public int deleteUsersWithReason1OlderThan30Days() {
+        LocalDateTime cutoffDate = LocalDateTime.now().minusDays(30);
+//        LocalDateTime cutoffDate = LocalDateTime.now().minusMinutes(5); //for testing purposes
+        return repo.deleteOldDeactivatedUsers(cutoffDate);
+    }
 
 //    private static class ScoredUser {
 //        UserDataDto user;

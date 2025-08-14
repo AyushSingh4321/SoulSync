@@ -21,23 +21,6 @@ public class UserController {
     @Autowired
     UserService userService;
 
-////    =================Controllers for User Chat data================
-//    @MessageMapping("/user.addUser")
-//    @SendTo("/user/topic")
-//    public UserModel addUser(@Payload UserModel user)
-//    {
-//        userService.saveUser(user);
-//        return user;
-//    }
-//
-//    @MessageMapping("/user.disconnectUser")
-//    @SendTo("/user/topic")
-//    public UserModel disconnect(@Payload UserModel user)
-//    {
-//        userService.disconnect(user);
-//        return user;
-//    }
-//
     @GetMapping("/users")
     public ResponseEntity<List<UserModel>> findConnectedUsers()
     {
@@ -98,6 +81,46 @@ public ResponseEntity<?> discoverUsers(
     }
 }
 
+//To delete the current logged-in user with their will
+    @DeleteMapping("/disableUser")
+    public ResponseEntity<?> disableUser(@RequestParam int reason) {
+        if (reason != 1 && reason != 3) {
+            return ResponseEntity
+                    .badRequest()
+                    .body("Invalid reason code. Allowed values are 1 or 3.");
+        }
+        try {
+            return userService.disableUser(reason);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error deleting user");
+        }
+    }
+
+    //    To report a user by the current logged-in user
+    //    userId is the id of the user to be reported
+    @PostMapping("/reportUser/{userId}")
+    public ResponseEntity<?> reportUser(@PathVariable Integer userId) {
+        try {
+            return userService.reportUser(userId);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error getting user profile");
+        }
+    }
+
+    /**
+     * API to delete all users with deactivationReason = 1 and deactivatedAt older than 30 days
+     * Intended to be triggered by a cron job
+     */
+    @DeleteMapping("/deleteUserDisabledAccounts")
+    public ResponseEntity<?> deleteOldDeactivatedUsers() {
+        try {
+            int deletedCount = userService.deleteUsersWithReason1OlderThan30Days();
+            return ResponseEntity.ok(deletedCount + " accounts deleted which were deactivated by the user more than 30 days ago.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error deleting old deactivated users: " + e.getMessage());
+        }
+    }
 
 //    To add search functionality
     @GetMapping("/search")
