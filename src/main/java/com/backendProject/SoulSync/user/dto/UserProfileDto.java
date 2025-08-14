@@ -1,6 +1,7 @@
 package com.backendProject.SoulSync.user.dto;
 
 public class UserProfileDto {
+    private Integer id;
     private String name;
     private Integer age;
     private String gender;
@@ -20,7 +21,8 @@ public class UserProfileDto {
     public UserProfileDto() {
     }
 
-    public UserProfileDto(String name, Integer age, String gender, String bio, String location, String interests, String profileImageUrl, Double height, String sports, String games, String relationshipType, Boolean goesGym, Boolean shortHair, Boolean wearGlasses, Boolean drink, Boolean smoke) {
+    public UserProfileDto(Integer id,String name, Integer age, String gender, String bio, String location, String interests, String profileImageUrl, Double height, String sports, String games, String relationshipType, Boolean goesGym, Boolean shortHair, Boolean wearGlasses, Boolean drink, Boolean smoke) {
+        this.id=id;
         this.name = name;
         this.age = age;
         this.gender = gender;
@@ -37,6 +39,14 @@ public class UserProfileDto {
         this.wearGlasses = wearGlasses;
         this.drink = drink;
         this.smoke = smoke;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public Double getHeight() {

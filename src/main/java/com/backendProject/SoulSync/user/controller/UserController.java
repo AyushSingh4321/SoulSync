@@ -79,14 +79,25 @@ public class UserController {
         }
     }
 //      To fetch all the users on the main screen in the order of their compatibility
-    @GetMapping("/discover")
-    public ResponseEntity<?> discoverUsers() {
-        try {
-            return ResponseEntity.ok(userService.getBestMatchedUsers());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error discovering/fetching all users according to compatibility");
-        }
+//    @GetMapping("/discover")
+//    public ResponseEntity<?> discoverUsers() {
+//        try {
+//            return ResponseEntity.ok(userService.getBestMatchedUsers());
+//        } catch (Exception e) {
+//            return ResponseEntity.badRequest().body("Error discovering/fetching all users according to compatibility");
+//        }
+//    }
+@GetMapping("/discover")
+public ResponseEntity<?> discoverUsers(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "5") int size) {
+    try {
+        return ResponseEntity.ok(userService.getBestMatchedUsers(page, size));
+    } catch (Exception e) {
+        return ResponseEntity.badRequest().body("Error discovering/fetching all users");
     }
+}
+
 
 //    To add search functionality
     @GetMapping("/search")

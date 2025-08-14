@@ -80,6 +80,7 @@ public class UserService {
         try {
             UserModel user = (UserModel) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             UserProfileDto dto = new UserProfileDto();
+            dto.setId(user.getId());
             dto.setName(user.getName());
             dto.setAge(user.getAge());
             dto.setGender(user.getGender());
@@ -203,19 +204,76 @@ public class UserService {
     }
 
 
+//    @Transactional
+//    public List<UserDataDto> getBestMatchedUsers() {
+//        UserModel currentUser = getCurrentManagedUser();
+//        Integer currentId = currentUser.getId();
+//        String myGender = currentUser.getGender();
+//        String targetGender = getTargetGender(myGender);
+//        Set<UserModel> myLikes = currentUser.getLikedUsers();
+//
+//        // -----------------------------------------------------------------
+//        // 1) No gender?  fall back to "everyone except me" (score = 0)
+//        // -----------------------------------------------------------------
+//        if (myGender == null || targetGender == null) {
+//            return repo.findAllExceptCurrent(currentId)
+//                    .stream()
+//                    .map(u -> new UserDataDto(
+//                            u.getId(), u.getName(), u.getAge(), u.getGender(), u.getBio(),
+//                            u.getLocation(), u.getInterests(), u.getProfileImageUrl(),
+//                            myLikes.contains(u),
+//                            u.getHeight(), u.getSports(), u.getGames(), u.getRelationshipType(),
+//                            u.getGoesGym(), u.getShortHair(), u.getWearGlasses(),
+//                            u.getDrink(), u.getSmoke(),
+//                            0                 // no score calculated
+//                    ))
+//                    .collect(Collectors.toList());
+//        }
+//
+//        // -----------------------------------------------------------------
+//        // 2) Normal match flow
+//        // -----------------------------------------------------------------
+//        List<UserModel> candidates = repo.findAllExceptCurrent(currentId)
+//                .stream()
+//                .filter(u -> Objects.equals(
+//                        Optional.ofNullable(u.getGender())
+//                                .map(String::toLowerCase)
+//                                .orElse(null),
+//                        targetGender.toLowerCase()))
+//                .toList();
+//
+//        return candidates.stream()
+//                .map(u -> {
+//                    int score = calculateMatchScore(currentUser, u);
+//                    boolean liked = myLikes.contains(u);
+//
+//                    return new UserDataDto(
+//                            u.getId(), u.getName(), u.getAge(), u.getGender(), u.getBio(),
+//                            u.getLocation(), u.getInterests(), u.getProfileImageUrl(),
+//                            liked,
+//                            u.getHeight(), u.getSports(), u.getGames(), u.getRelationshipType(),
+//                            u.getGoesGym(), u.getShortHair(), u.getWearGlasses(),
+//                            u.getDrink(), u.getSmoke(),
+//                            score                                // NEW
+//                    );
+//                })
+//                .sorted(Comparator.comparingInt(UserDataDto::getScore).reversed())
+//                .collect(Collectors.toList());
+//    }
+
     @Transactional
-    public List<UserDataDto> getBestMatchedUsers() {
+    public List<UserDataDto> getBestMatchedUsers(int page, int size) {
+
         UserModel currentUser = getCurrentManagedUser();
         Integer currentId = currentUser.getId();
         String myGender = currentUser.getGender();
         String targetGender = getTargetGender(myGender);
         Set<UserModel> myLikes = currentUser.getLikedUsers();
 
-        // -----------------------------------------------------------------
-        // 1) No gender?  fall back to "everyone except me" (score = 0)
-        // -----------------------------------------------------------------
+        List<UserDataDto> allMatches;
+
         if (myGender == null || targetGender == null) {
-            return repo.findAllExceptCurrent(currentId)
+            allMatches = repo.findAllExceptCurrent(currentId)
                     .stream()
                     .map(u -> new UserDataDto(
                             u.getId(), u.getName(), u.getAge(), u.getGender(), u.getBio(),
@@ -224,40 +282,43 @@ public class UserService {
                             u.getHeight(), u.getSports(), u.getGames(), u.getRelationshipType(),
                             u.getGoesGym(), u.getShortHair(), u.getWearGlasses(),
                             u.getDrink(), u.getSmoke(),
-                            0                 // no score calculated
+                            0
                     ))
                     .collect(Collectors.toList());
-        }
+        } else {
+            List<UserModel> candidates = repo.findAllExceptCurrent(currentId)
+                    .stream()
+                    .filter(u -> Objects.equals(
+                            Optional.ofNullable(u.getGender())
+                                    .map(String::toLowerCase)
+                                    .orElse(null),
+                            targetGender.toLowerCase()))
+                    .toList();
 
-        // -----------------------------------------------------------------
-        // 2) Normal match flow
-        // -----------------------------------------------------------------
-        List<UserModel> candidates = repo.findAllExceptCurrent(currentId)
-                .stream()
-                .filter(u -> Objects.equals(
-                        Optional.ofNullable(u.getGender())
-                                .map(String::toLowerCase)
-                                .orElse(null),
-                        targetGender.toLowerCase()))
-                .toList();
-
-        return candidates.stream()
-                .map(u -> {
-                    int score = calculateMatchScore(currentUser, u);
-                    boolean liked = myLikes.contains(u);
-
-                    return new UserDataDto(
+            allMatches = candidates.stream()
+                    .map(u -> new UserDataDto(
                             u.getId(), u.getName(), u.getAge(), u.getGender(), u.getBio(),
                             u.getLocation(), u.getInterests(), u.getProfileImageUrl(),
-                            liked,
+                            myLikes.contains(u),
                             u.getHeight(), u.getSports(), u.getGames(), u.getRelationshipType(),
                             u.getGoesGym(), u.getShortHair(), u.getWearGlasses(),
                             u.getDrink(), u.getSmoke(),
-                            score                                // NEW
-                    );
-                })
-                .sorted(Comparator.comparingInt(UserDataDto::getScore).reversed())
-                .collect(Collectors.toList());
+                            calculateMatchScore(currentUser, u)
+                    ))
+                    .sorted(Comparator.comparingInt(UserDataDto::getScore).reversed())
+                    .collect(Collectors.toList());
+        }
+        System.out.println("DEBUG: page=" + page + ", size=" + size);
+        System.out.println("DEBUG: total filtered users=" + allMatches.size());
+
+        // --- Apply Pagination ---
+        int fromIndex = page * size;
+        if (fromIndex >= allMatches.size()) {
+            return Collections.emptyList(); // no more users
+        }
+
+        int toIndex = Math.min(fromIndex + size, allMatches.size());
+        return allMatches.subList(fromIndex, toIndex);
     }
 
     //Helper functions and classes below
